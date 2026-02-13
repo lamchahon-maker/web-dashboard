@@ -134,7 +134,59 @@
                 </div>
             </section>
 
+            <!-- Executive Summary Section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>📊 สรุปผู้บริหาร (Executive Summary)</h2>
+                    <p>ภาพรวมสถานะโรงงานแบบเห็นปุ๊บรู้ปั๊บ</p>
+                </div>
+
+                <!-- Executive Summary Cards -->
+                <div class="executive-summary-grid">
+                    <div class="exec-card">
+                        <div class="exec-card-header">
+                            <span class="exec-icon">📈</span>
+                            <span class="exec-label">จำนวนข้อมูลทั้งหมด</span>
+                        </div>
+                        <div class="exec-value" id="execTotalRecords">-</div>
+                        <div class="exec-sublabel">Total Records</div>
+                    </div>
+
+                    <div class="exec-card">
+                        <div class="exec-card-header">
+                            <span class="exec-icon">🟤</span>
+                            <span class="exec-label">ค่าเฉลี่ย Iron</span>
+                        </div>
+                        <div class="exec-value" id="execAvgIron">-</div>
+                        <div class="exec-trend" id="execIronTrend"></div>
+                        <div class="exec-sublabel">Average % Iron Concentrate</div>
+                    </div>
+
+                    <div class="exec-card">
+                        <div class="exec-card-header">
+                            <span class="exec-icon">⚪</span>
+                            <span class="exec-label">ค่าเฉลี่ย Silica</span>
+                        </div>
+                        <div class="exec-value" id="execAvgSilica">-</div>
+                        <div class="exec-trend" id="execSilicaTrend"></div>
+                        <div class="exec-sublabel">Average % Silica Concentrate</div>
+                    </div>
+
+                    <div class="exec-card exec-card-status">
+                        <div class="exec-card-header">
+                            <span class="exec-icon">🎯</span>
+                            <span class="exec-label">สถานะโรงงาน</span>
+                        </div>
+                        <div class="exec-status" id="execStatus">
+                            <span class="status-badge status-normal">ปกติ</span>
+                        </div>
+                        <div class="exec-sublabel" id="execStatusDetail">คุณภาพแร่อยู่ในเกณฑ์มาตรฐาน</div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Overview Section -->
+
             <section class="section">
                 <div class="section-header">
                     <h2>ภาพรวม (Overview)</h2>

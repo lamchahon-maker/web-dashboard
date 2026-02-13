@@ -375,7 +375,108 @@ function updateKPIs() {
         const days = Math.floor((maxDate - minDate) / (1000 * 60 * 60 * 24)) + 1;
         document.getElementById('dateRange').textContent = `${days} วัน`;
     }
+
+    // Update Executive Summary
+    updateExecutiveSummary(avgIron, avgSilica, filteredData.length);
 }
+
+// Update Executive Summary
+function updateExecutiveSummary(avgIron, avgSilica, totalRecords) {
+    // Total Records
+    const execTotalRecords = document.getElementById('execTotalRecords');
+    if (execTotalRecords) {
+        execTotalRecords.textContent = totalRecords.toLocaleString();
+    }
+
+    // Average Iron
+    const execAvgIron = document.getElementById('execAvgIron');
+    const execIronTrend = document.getElementById('execIronTrend');
+    if (execAvgIron) {
+        execAvgIron.textContent = avgIron.toFixed(2) + '%';
+
+        // Calculate trend (compare with ideal value of 66%)
+        if (execIronTrend) {
+            const ironIdeal = 66;
+            const ironDiff = avgIron - ironIdeal;
+            if (Math.abs(ironDiff) < 1) {
+                execIronTrend.innerHTML = '➡️ เสถียร';
+                execIronTrend.className = 'exec-trend trend-stable';
+            } else if (ironDiff > 0) {
+                execIronTrend.innerHTML = `↗️ สูงกว่ามาตรฐาน ${Math.abs(ironDiff).toFixed(2)}%`;
+                execIronTrend.className = 'exec-trend trend-up';
+            } else {
+                execIronTrend.innerHTML = `↘️ ต่ำกว่ามาตรฐาน ${Math.abs(ironDiff).toFixed(2)}%`;
+                execIronTrend.className = 'exec-trend trend-down';
+            }
+        }
+    }
+
+    // Average Silica
+    const execAvgSilica = document.getElementById('execAvgSilica');
+    const execSilicaTrend = document.getElementById('execSilicaTrend');
+    if (execAvgSilica) {
+        execAvgSilica.textContent = avgSilica.toFixed(2) + '%';
+
+        // Calculate trend (lower is better, ideal is < 2%)
+        if (execSilicaTrend) {
+            const silicaIdeal = 2;
+            const silicaDiff = avgSilica - silicaIdeal;
+            if (Math.abs(silicaDiff) < 0.5) {
+                execSilicaTrend.innerHTML = '➡️ เสถียร';
+                execSilicaTrend.className = 'exec-trend trend-stable';
+            } else if (silicaDiff > 0) {
+                execSilicaTrend.innerHTML = `↗️ สูงกว่ามาตรฐาน ${Math.abs(silicaDiff).toFixed(2)}%`;
+                execSilicaTrend.className = 'exec-trend trend-down'; // Red because higher silica is bad
+            } else {
+                execSilicaTrend.innerHTML = `↘️ ต่ำกว่ามาตรฐาน ${Math.abs(silicaDiff).toFixed(2)}%`;
+                execSilicaTrend.className = 'exec-trend trend-up'; // Green because lower silica is good
+            }
+        }
+    }
+
+    // Status Determination
+    const execStatus = document.getElementById('execStatus');
+    const execStatusDetail = document.getElementById('execStatusDetail');
+
+    if (execStatus && execStatusDetail) {
+        let statusClass = 'status-normal';
+        let statusText = 'ปกติ';
+        let statusDetail = 'คุณภาพแร่อยู่ในเกณฑ์มาตรฐาน';
+
+        // Determine status based on Iron and Silica values
+        // Normal: Iron > 64% AND Silica < 3%
+        // Warning: Iron 60-64% OR Silica 3-4%
+        // Critical: Iron < 60% OR Silica > 4%
+
+        if (avgIron < 60 || avgSilica > 4) {
+            statusClass = 'status-critical';
+            statusText = 'ผิดปกติ';
+            if (avgIron < 60 && avgSilica > 4) {
+                statusDetail = '⚠️ Iron ต่ำและ Silica สูงเกินมาตรฐาน - ต้องตรวจสอบด่วน!';
+            } else if (avgIron < 60) {
+                statusDetail = '⚠️ Iron ต่ำกว่ามาตรฐาน - ควรปรับกระบวนการ';
+            } else {
+                statusDetail = '⚠️ Silica สูงเกินมาตรฐาน - ควรปรับสารเคมี';
+            }
+        } else if ((avgIron >= 60 && avgIron < 64) || (avgSilica >= 3 && avgSilica <= 4)) {
+            statusClass = 'status-warning';
+            statusText = 'ควรเฝ้าระวัง';
+            if (avgIron < 64 && avgSilica >= 3) {
+                statusDetail = '⚡ Iron ใกล้เกณฑ์และ Silica ค่อนข้างสูง - ติดตามอย่างใกล้ชิด';
+            } else if (avgIron < 64) {
+                statusDetail = '⚡ Iron ใกล้เกณฑ์ต่ำสุด - แนะนำให้เฝ้าระวัง';
+            } else {
+                statusDetail = '⚡ Silica ค่อนข้างสูง - แนะนำให้เฝ้าระวัง';
+            }
+        } else {
+            statusDetail = '✅ Iron และ Silica อยู่ในเกณฑ์มาตรฐาน';
+        }
+
+        execStatus.innerHTML = `<span class="status-badge ${statusClass}">${statusText}</span>`;
+        execStatusDetail.textContent = statusDetail;
+    }
+}
+
 
 // Helper function to get theme-aware colors
 function getThemeColors() {
