@@ -217,7 +217,16 @@
                     </div>
                     <button id="applyFilter" class="btn btn-primary">ค​รอง​ข้อมูล</button>
                     <button id="resetFilter" class="btn btn-secondary">รีเซ็ต</button>
+                    <button id="clearCrossFilterBtn" class="btn btn-secondary" style="display: none;">
+                        🔍 ยกเลิกตัวกรอง
+                    </button>
                     <span id="recordCount" class="record-count"></span>
+
+                    <!-- Cross-filter indicator -->
+                    <div id="crossFilterIndicator" class="cross-filter-indicator" style="display: none;">
+                        <span id="crossFilterText"></span>
+                        <button id="clearCrossFilter" class="btn-clear-filter" title="Clear filter">✕</button>
+                    </div>
                 </div>
 
                 <!-- KPI Cards -->

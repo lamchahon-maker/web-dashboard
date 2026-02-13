@@ -7,6 +7,10 @@ let sortColumn = null;
 let sortDirection = 'asc';
 let charts = {};
 
+// Cross-filtering state
+let activeFilter = null; // { type: 'date', value: '2017-03-10' } or null
+let baseFilteredData = []; // Store data after date range filter, before cross-filter
+
 // DOM Elements
 const loadingOverlay = document.getElementById('loadingOverlay');
 const errorModal = document.getElementById('errorModal');
@@ -100,6 +104,17 @@ function setupEventListeners() {
     document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
         th.addEventListener('click', () => handleSort(th.dataset.sort));
     });
+
+    // Cross-filter clear buttons (both badge X and dedicated button)
+    const clearCrossFilterBadge = document.getElementById('clearCrossFilter');
+    if (clearCrossFilterBadge) {
+        clearCrossFilterBadge.addEventListener('click', clearCrossFilter);
+    }
+
+    const clearCrossFilterBtn = document.getElementById('clearCrossFilterBtn');
+    if (clearCrossFilterBtn) {
+        clearCrossFilterBtn.addEventListener('click', clearCrossFilter);
+    }
 }
 
 // Load CSV Data
@@ -253,7 +268,81 @@ function resetFilter() {
     initializeDateFilters();
     document.getElementById('searchInput').value = '';
     currentPage = 1;
+    activeFilter = null; // Clear cross-filter
+    clearCrossFilter();
     updateDashboard();
+}
+
+// Apply Cross-Filter (when clicking on chart)
+function applyCrossFilter(type, value) {
+    // Store base filtered data ONLY on first filter (before any cross-filter is active)
+    if (baseFilteredData.length === 0 && activeFilter === null) {
+        baseFilteredData = [...filteredData];
+    }
+
+    activeFilter = { type, value };
+
+    // Apply cross-filter on top of base filtered data
+    if (type === 'date') {
+        filteredData = baseFilteredData.filter(row => row.date === value);
+    } else if (type === 'range') {
+        const { column, min, max } = value;
+        filteredData = baseFilteredData.filter(row => {
+            const val = row[column];
+            return val >= min && val <= max;
+        });
+    }
+
+    // Update UI
+    showCrossFilterIndicator(type, value);
+    updateDashboard();
+}
+
+// Clear Cross-Filter
+function clearCrossFilter() {
+    activeFilter = null;
+
+    // Restore to base filtered data (date range filter only)
+    if (baseFilteredData.length > 0) {
+        filteredData = [...baseFilteredData];
+        baseFilteredData = [];
+    }
+
+    // Hide indicator and clear button
+    const indicator = document.getElementById('crossFilterIndicator');
+    if (indicator) {
+        indicator.style.display = 'none';
+    }
+
+    const clearBtn = document.getElementById('clearCrossFilterBtn');
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+
+    updateDashboard();
+}
+
+// Show Cross-Filter Indicator
+function showCrossFilterIndicator(type, value) {
+    const indicator = document.getElementById('crossFilterIndicator');
+    const text = document.getElementById('crossFilterText');
+
+    if (indicator && text) {
+        if (type === 'date') {
+            text.textContent = `🔍 กรองตามวันที่: ${value}`;
+        } else if (type === 'range') {
+            const { column, min, max } = value;
+            const columnName = column.includes('Iron') ? 'Iron' : column.includes('Silica') ? 'Silica' : column;
+            text.textContent = `🔍 กรองตาม ${columnName}: ${min.toFixed(2)} - ${max.toFixed(2)}`;
+        }
+        indicator.style.display = 'inline-flex';
+    }
+
+    // Show dedicated clear button
+    const clearBtn = document.getElementById('clearCrossFilterBtn');
+    if (clearBtn) {
+        clearBtn.style.display = 'inline-block';
+    }
 }
 
 // Search Handler
@@ -590,6 +679,13 @@ function renderTrendChart() {
         options: {
             responsive: true,
             maintainAspectRatio: true,
+            onClick: (event, activeElements, chart) => {
+                if (activeElements && activeElements.length > 0) {
+                    const index = activeElements[0].index;
+                    const clickedDate = dates[index];
+                    applyCrossFilter('date', clickedDate);
+                }
+            },
             interaction: {
                 mode: 'index',
                 intersect: false,
@@ -792,6 +888,14 @@ function renderHistogram(canvasId, column, color, colors) {
         options: {
             responsive: true,
             maintainAspectRatio: true,
+            onClick: (event, activeElements, chart) => {
+                if (activeElements && activeElements.length > 0) {
+                    const index = activeElements[0].index;
+                    const binStart = min + index * binSize;
+                    const binEnd = binStart + binSize;
+                    applyCrossFilter('range', { column, min: binStart, max: binEnd });
+                }
+            },
             plugins: {
                 legend: {
                     labels: {
