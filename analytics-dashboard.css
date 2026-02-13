@@ -43,7 +43,7 @@ body.light-mode {
 
     --text-primary: #1a1a2e;
     --text-secondary: rgba(26, 26, 46, 0.8);
-    --text-muted: rgba(26, 26, 46, 0.5);
+    --text-muted: rgba(26, 26, 46, 0.65);
 
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
     --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -212,12 +212,13 @@ body {
 
 .logo-section h1 {
     font-size: 1.5rem;
-    font-weight: 700;
+    font-weight: 800;
     background: var(--primary-gradient);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin: 0;
+    letter-spacing: -0.02em;
 }
 
 .logo-section .subtitle {
@@ -313,7 +314,7 @@ body {
 }
 
 .section {
-    margin-bottom: 4rem;
+    margin-bottom: 5rem;
 }
 
 .section-header {
@@ -322,8 +323,9 @@ body {
 
 .section-header h2 {
     font-size: 2rem;
-    font-weight: 700;
+    font-weight: 800;
     margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
 }
 
 .section-header p {
@@ -453,13 +455,15 @@ body {
 }
 
 .kpi-value {
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: 2.5rem;
+    font-weight: 800;
     background: var(--primary-gradient);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 0.75rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
 }
 
 .kpi-range {
@@ -475,7 +479,7 @@ body {
 
 /* Chart Containers */
 .chart-container {
-    padding: 2rem;
+    padding: 2.5rem;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: var(--border-radius);
@@ -485,7 +489,7 @@ body {
 }
 
 .chart-container-small {
-    padding: 1.5rem;
+    padding: 2rem;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: var(--border-radius);
@@ -502,7 +506,24 @@ body {
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-    gap: 1.5rem;
+    gap: 2rem;
+}
+
+/* Chart Insights */
+.chart-insight {
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    background: rgba(102, 126, 234, 0.08);
+    border-left: 3px solid var(--primary);
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+}
+
+.chart-insight strong {
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 /* Table Styles */
@@ -1099,4 +1120,78 @@ canvas {
         width: 240px;
         font-size: 0.75rem;
     }
+}
+
+/* Info Icon & Tooltip */
+.info-icon {
+    cursor: help;
+    opacity: 0.7;
+    transition: var(--transition);
+    margin-left: 0.25rem;
+    font-size: 0.9em;
+}
+
+.info-icon:hover {
+    opacity: 1;
+}
+
+.info-icon[data-tooltip] {
+    position: relative;
+}
+
+.info-icon[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 140%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--card-border);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    white-space: normal;
+    width: 280px;
+    max-width: 90vw;
+    text-align: left;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    font-weight: normal;
+}
+
+.info-icon[data-tooltip]::before {
+    content: "";
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: var(--card-border);
+    border-bottom: 0;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1001;
+}
+
+.info-icon[data-tooltip]:hover::after,
+.info-icon[data-tooltip]:hover::before {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Light mode specific tooltip styling */
+body.light-mode .info-icon[data-tooltip]::after {
+    background: white;
+    color: #1a202c;
+    border-color: #e2e8f0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .info-icon[data-tooltip]::before {
+    border-top-color: #e2e8f0;
 }
