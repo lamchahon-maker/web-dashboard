@@ -108,7 +108,9 @@ function loadData() {
     showLoading('กำลังโหลดข้อมูล...');
     updateProgress(5, 'กำลังโหลดไฟล์ CSV...');
 
-    Papa.parse('cleaned_dataset9.csv', {
+    // Add timestamp to prevent browser caching
+    const timestamp = new Date().getTime();
+    Papa.parse(`cleaned_dataset9.csv?t=${timestamp}`, {
         download: true,
         header: true,
         dynamicTyping: true,
