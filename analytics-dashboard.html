@@ -442,6 +442,12 @@
                         เหมาะสำหรับการตรวจสอบข้อมูลรายละเอียดและการวิเคราะห์เพิ่มเติม</p>
                 </div>
 
+                <!-- Data Governance Note -->
+                <div class="data-note" style="margin-bottom: 1.5rem; border-left: 4px solid var(--primary);">
+                    <strong>🛡️ Data Pre-processing:</strong> ข้อมูลถูกสรุปผล (Aggregated) จาก 204,000 แถว เหลือ 4,097
+                    แถว เพื่อกำจัดสัญญาณรบกวน (Noise) และหาค่าเฉลี่ยรายชั่วโมงที่แม่นยำที่สุด
+                </div>
+
                 <!-- Search and Controls -->
                 <div class="table-controls">
                     <div class="search-box">
@@ -468,14 +474,16 @@
                     <table id="dataTable" class="data-table">
                         <thead>
                             <tr>
-                                <th data-sort="date">วันที่ <span class="sort-icon">⇅</span></th>
-                                <th data-sort="% Iron Concentrate">% Iron Conc. <span class="sort-icon">⇅</span></th>
-                                <th data-sort="% Silica Concentrate">% Silica Conc. <span class="sort-icon">⇅</span>
+                                <th data-sort="date">วันที่ (Date) <span class="sort-icon">⇅</span></th>
+                                <th data-sort="% Iron Concentrate">% Iron Conc. (เหล็ก) <span class="sort-icon">⇅</span>
                                 </th>
-                                <th data-sort="Ore Pulp pH">pH <span class="sort-icon">⇅</span></th>
-                                <th data-sort="Ore Pulp Density">Density <span class="sort-icon">⇅</span></th>
-                                <th data-sort="Starch Flow">Starch Flow <span class="sort-icon">⇅</span></th>
-                                <th data-sort="Amina Flow">Amina Flow <span class="sort-icon">⇅</span></th>
+                                <th data-sort="% Silica Concentrate">% Silica Conc. (ซิลิกา) <span
+                                        class="sort-icon">⇅</span></th>
+                                <th data-sort="Ore Pulp pH">pH (ความเป็นกรด-ด่าง) <span class="sort-icon">⇅</span></th>
+                                <th data-sort="Ore Pulp Density">Density (ความหนาแน่น) <span class="sort-icon">⇅</span>
+                                </th>
+                                <th data-sort="Starch Flow">Starch Flow (แป้ง) <span class="sort-icon">⇅</span></th>
+                                <th data-sort="Amina Flow">Amina Flow (เอมีนา) <span class="sort-icon">⇅</span></th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
