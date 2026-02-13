@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mining Process Analytics Dashboard - การวิเคราะห์กระบวนการทำแร่เหล็ก">
+    <title>Mining Process Analytics Dashboard</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- Papa Parse for CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <link rel="stylesheet" href="analytics-dashboard.css">
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loadingText">กำลังโหลดข้อมูล...</p>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <p id="progressText" class="progress-text">0%</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal">
+        <div class="modal-content error">
+            <span class="close-modal" onclick="closeErrorModal()">&times;</span>
+            <h2>⚠️ เกิดข้อผิดพลาด</h2>
+            <p id="errorMessage"></p>
+            <button onclick="location.reload()" class="btn btn-primary">โหลดข้อมูลอีกครั้ง</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <svg width="40" height="40" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#gradient)" stroke-width="3" />
+                        <path d="M35,50 L45,60 L65,40" fill="none" stroke="url(#gradient)" stroke-width="4" />
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea" />
+                                <stop offset="100%" style="stop-color:#764ba2" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div>
+                        <h1>Mining Process Analytics</h1>
+                        <p class="subtitle">การวิเคราะห์กระบวนการทำแร่เหล็ก</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="themeToggle" class="btn btn-secondary" title="สลับโหมดสี">
+                        <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                        <span id="themeText">โหมดสว่าง</span>
+                    </button>
+                    <button id="exportBtn" class="btn btn-secondary" title="ส่งออกข้อมูล">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        <span>ส่งออก</span>
+                    </button>
+                    <div class="data-status">
+                        <span class="status-dot"></span>
+                        <span id="dataStatus">พร้อมใช้งาน</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Information Section -->
+            <section class="section info-section">
+                <div class="info-banner">
+                    <div class="info-icon-large">📚</div>
+                    <div class="info-content">
+                        <h2>เกี่ยวกับข้อมูล (About This Data)</h2>
+                        <p>Dashboard นี้แสดงข้อมูลจากกระบวนการ <strong>Flotation</strong>
+                            ซึ่งเป็นวิธีการแยกแร่เหล็กออกจากหินแร่โดยใช้น้ำและสารเคมี</p>
+                        <details class="info-details">
+                            <summary>🔍 คลิกเพื่ออ่านรายละเอียดเพิ่มเติม</summary>
+                            <div class="details-content">
+                                <h4>กระบวนการทำงาน:</h4>
+                                <ol>
+                                    <li><strong>บดแร่</strong> - นำหินแร่มาบดให้ละเอียด</li>
+                                    <li><strong>ผสมน้ำ</strong> - ผสมแร่บดกับน้ำให้เป็นโคลน (Pulp)</li>
+                                    <li><strong>ใส่สารเคมี</strong> - ใส่ Starch และ Amina เพื่อช่วยให้เหล็กลอยขึ้นมา
+                                    </li>
+                                    <li><strong>ควบคุม pH</strong> - ปรับความเป็นกรด-ด่างให้เหมาะสม</li>
+                                    <li><strong>Flotation</strong> - เป่าฟองอากาศให้เหล็กติดฟองลอยขึ้นมา</li>
+                                    <li><strong>แยกเก็บ</strong> - เก็บเหล็กที่ลอยขึ้นมา ทิ้งของเสีย (Silica)</li>
+                                </ol>
+
+                                <h4>ตัวแปรสำคัญ:</h4>
+                                <ul>
+                                    <li><strong>% Iron Concentrate</strong> 🟤 = ปริมาณเหล็กที่ได้ (ยิ่งสูงยิ่งดี)</li>
+                                    <li><strong>% Silica Concentrate</strong> ⚪ = ปริมาณของเสีย (ยิ่งต่ำยิ่งดี)</li>
+                                    <li><strong>Ore Pulp pH</strong> 🧪 = ความเป็นกรด-ด่าง (ควรอยู่ 9-11)</li>
+                                    <li><strong>Ore Pulp Density</strong> 💧 = ความหนาแน่นของโคลนแร่</li>
+                                    <li><strong>Starch Flow</strong> 🌾 = อัตราการไหลของแป้ง (ช่วยกดซิลิกาไม่ให้ลอย)
+                                    </li>
+                                    <li><strong>Amina Flow</strong> 💊 = อัตราการไหลของอะมีน (ช่วยให้เหล็กลอย)</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Overview Section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>ภาพรวม (Overview)</h2>
+                    <p>ตัวชี้วัดหลักของกระบวนการ</p>
+                </div>
+
+                <!-- Date Filter -->
+                <div class="filter-section">
+                    <div class="filter-group">
+                        <label for="dateFrom">จากวันที่:</label>
+                        <input type="date" id="dateFrom" class="input">
+                    </div>
+                    <div class="filter-group">
+                        <label for="dateTo">ถึงวันที่:</label>
+                        <input type="date" id="dateTo" class="input">
+                    </div>
+                    <button id="applyFilter" class="btn btn-primary">ค​รอง​ข้อมูล</button>
+                    <button id="resetFilter" class="btn btn-secondary">รีเซ็ต</button>
+                    <span id="recordCount" class="record-count"></span>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon iron">
+                            <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+                                <defs>
+                                    <linearGradient id="ironGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#8B9DC3;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#C0C8D8;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#667799;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <!-- Iron ingot shape -->
+                                <path d="M12,20 L36,20 L40,28 L40,35 L8,35 L8,28 Z" fill="url(#ironGradient)"
+                                    stroke="#556688" stroke-width="1.5" />
+                                <!-- Highlight -->
+                                <path d="M14,22 L34,22 L37,28 L11,28 Z" fill="rgba(255,255,255,0.3)" />
+                                <!-- Iron symbol Fe -->
+                                <text x="24" y="32" font-family="Arial, sans-serif" font-size="10" font-weight="bold"
+                                    fill="#2D3748" text-anchor="middle">Fe</text>
+                            </svg>
+                        </div>
+                        <div class="kpi-content">
+                            <h3>ปริมาณเหล็กเฉลี่ย
+                                <span class="info-icon"
+                                    data-tooltip="Iron Concentrate คือปริมาณเหล็กที่สามารถแยกออกมาได้จากกระบวนการทำแร่ ยิ่งมีค่าสูงยิ่งดี หมายถึงได้เหล็กมากขึ้น ค่าปกติอยู่ระหว่าง 60-70%">ℹ️</span>
+                            </h3>
+                            <p class="kpi-label">AVG % Iron Concentrate</p>
+                            <div class="kpi-value" id="avgIron">-</div>
+                            <div class="kpi-range">
+                                <span>Min: <strong id="minIron">-</strong></span>
+                                <span>Max: <strong id="maxIron">-</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-icon silica">⛰️</div>
+                        <div class="kpi-content">
+                            <h3>ปริมาณของเสียเฉลี่ย
+                                <span class="info-icon"
+                                    data-tooltip="Silica Concentrate คือปริมาณซิลิกา (ทราย/หิน) ที่เป็นของเสียจากกระบวนการ ยิ่งมีค่าต่ำยิ่งดี หมายถึงได้เหล็กบริสุทธิ์มากขึ้น ค่าปกติอยู่ระหว่าง 1-4%">ℹ️</span>
+                            </h3>
+                            <p class="kpi-label">AVG % Silica Concentrate</p>
+                            <div class="kpi-value" id="avgSilica">-</div>
+                            <div class="kpi-range">
+                                <span>Min: <strong id="minSilica">-</strong></span>
+                                <span>Max: <strong id="maxSilica">-</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-icon ph">🧪</div>
+                        <div class="kpi-content">
+                            <h3>ค่า pH เฉลี่ย
+                                <span class="info-icon"
+                                    data-tooltip="pH วัดความเป็นกรด-ด่างของน้ำที่ใช้ในกระบวนการ ค่า pH ที่เหมาะสมจะช่วยให้การแยกเหล็กออกจากแร่มีประสิทธิภาพ ค่าปกติอยู่ระหว่าง 9-11 (ด่างเล็กน้อย)">ℹ️</span>
+                            </h3>
+                            <p class="kpi-label">AVG Ore Pulp pH</p>
+                            <div class="kpi-value" id="avgPH">-</div>
+                            <div class="kpi-range">
+                                <span>Min: <strong id="minPH">-</strong></span>
+                                <span>Max: <strong id="maxPH">-</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-icon records">📈</div>
+                        <div class="kpi-content">
+                            <h3>จำนวนบันทึก
+                                <span class="info-icon"
+                                    data-tooltip="จำนวนข้อมูลทั้งหมดที่บันทึกไว้ในช่วงเวลาที่เลือก แต่ละบันทึกคือการวัดค่าต่างๆ ในกระบวนการทุกๆ ชั่วโมง ข้อมูลยิ่งมากยิ่งสามารถวิเคราะห์แนวโน้มได้แม่นยำ">ℹ️</span>
+                            </h3>
+                            <p class="kpi-label">Total Records</p>
+                            <div class="kpi-value" id="totalRecords">-</div>
+                            <div class="kpi-range">
+                                <span>ระยะเวลา: <strong id="dateRange">-</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Trend Analysis Section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>การวิเคราะห์แนวโน้ม (Trend Analysis)</h2>
+                    <p>กราฟแสดงค่าเฉลี่ยรายวันของ Iron Concentrate และ Silica Concentrate ตลอดช่วงเวลาที่เลือก
+                        ช่วยให้เห็นแนวโน้มว่าค่าต่างๆ เพิ่มขึ้นหรือลดลงอย่างไร และมีความผันแปรมากน้อยเพียงใด</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Forecast Section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>การพยากรณ์แนวโน้ม (Trend Forecasting)</h2>
+                    <p>ใช้อัลกอริทึม Linear Regression ในการพยากรณ์ค่า Iron และ Silica Concentrate ในอนาคต 7-30 วัน
+                        โดยวิเคราะห์จากแนวโน้มของข้อมูลในอดีต ค่า R² แสดงความแม่นยำของโมเดล (ยิ่งใกล้ 1 ยิ่งแม่นยำ)
+                        และค่า Trend แสดงอัตราการเปลี่ยนแปลงต่อวัน</p>
+                </div>
+                <div class="filter-section">
+                    <div class="filter-group">
+                        <label for="forecastDays">จำนวนวันที่ต้องการพยากรณ์:</label>
+                        <select id="forecastDays" class="input">
+                            <option value="7" selected>7 วัน</option>
+                            <option value="14">14 วัน</option>
+                            <option value="30">30 วัน</option>
+                        </select>
+                    </div>
+                    <button id="generateForecast" class="btn btn-primary">สร้างกราฟพยากรณ์</button>
+                    <button id="exportForecast" class="btn btn-secondary">ส่งออกข้อมูลพยากรณ์</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+                <div id="forecastMetrics" class="stats-panel">
+                    <!-- Forecast accuracy metrics will be displayed here -->
+                </div>
+            </section>
+
+            <!-- Correlation Matrix Heatmap Section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>Correlation Matrix Heatmap</h2>
+                    <p>แสดงความสัมพันธ์ระหว่างตัวแปรทั้งหมดโดยใช้ Pearson Correlation Coefficient
+                        ซึ่งวัดความสัมพันธ์เชิงเส้น ค่าอยู่ระหว่าง -1 ถึง +1 โดยสีเขียวแสดงความสัมพันธ์เชิงบวกแรง
+                        (ตัวแปรเปลี่ยนแปลงไปในทิศทางเดียวกัน) สีแดงแสดงความสัมพันธ์เชิงลบแรง (ตัวแปรเปลี่ยนแปลงตรงข้าม)
+                        และสีขาวแสดงว่าไม่มีความสัมพันธ์</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="heatmapChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Advanced Statistics Section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>สถิติขั้นสูง (Advanced Statistics)</h2>
+                    <p>แสดงสถิติเชิงลึกของตัวแปรสำคัญ ได้แก่ Mean (ค่าเฉลี่ย), Standard Deviation (ความกระจายของข้อมูล),
+                        Variance (ความแปรปรวน), Skewness (ความเบ้), Kurtosis (ความโด่ง), Percentiles (ค่าควอไทล์)
+                        และจำนวน Outliers (ค่าผิดปกติ) ที่ตรวจพบด้วย IQR Method</p>
+                </div>
+                <div id="advancedStatsContainer" class="stats-grid">
+                    <!-- Advanced statistics will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Correlation Analysis Section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>การวิเคราะห์ความสัมพันธ์ (Correlation Analysis)</h2>
+                    <p>กราฟ Scatter Plot แสดงความสัมพันธ์ระหว่างค่า pH และปริมาณ Silica Concentrate
+                        โดยแต่ละจุดแทนหนึ่งการวัด ช่วยให้เห็นว่าการเปลี่ยนแปลงของ pH มีผลต่อปริมาณ Silica อย่างไร
+                        หากจุดเรียงตัวเป็นเส้นตรง แสดงว่ามีความสัมพันธ์เชิงเส้นที่ชัดเจน</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="correlationChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Distribution Analysis Section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>การกระจายข้อมูล (Distribution)</h2>
+                    <p>กราฟ Histogram แสดงการกระจายตัวของข้อมูล โดยแกน X แสดงช่วงค่า (bins) และแกน Y แสดงความถี่
+                        (จำนวนครั้งที่ค่าปรากฏในช่วงนั้น) ช่วยให้เห็นว่าข้อมูลส่วนใหญ่มีค่าเท่าไหร่
+                        มีการกระจายแบบสมมาตรหรือเบ้ไปทางใด และมีค่าผิดปกติหรือไม่</p>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-container-small">
+                        <h3>การกระจายของ % Iron Concentrate</h3>
+                        <canvas id="ironDistChart"></canvas>
+                    </div>
+                    <div class="chart-container-small">
+                        <h3>การกระจายของ % Silica Concentrate</h3>
+                        <canvas id="silicaDistChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Detailed Data Table Section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>ข้อมูลรายละเอียด (Detailed Data)</h2>
+                    <p>ตารางแสดงข้อมูลดิบทั้งหมดในรูปแบบตาราง สามารถค้นหา เรียงลำดับตามคอลัมน์ต่างๆ
+                        เปลี่ยนจำนวนแถวที่แสดงต่อหน้า และส่งออกข้อมูลเป็นไฟล์ CSV ได้
+                        เหมาะสำหรับการตรวจสอบข้อมูลรายละเอียดและการวิเคราะห์เพิ่มเติม</p>
+                </div>
+
+                <!-- Search and Controls -->
+                <div class="table-controls">
+                    <div class="search-box">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.35-4.35" />
+                        </svg>
+                        <input type="text" id="searchInput" placeholder="ค้นหาในตาราง..." class="input">
+                    </div>
+                    <div class="table-actions">
+                        <select id="pageSize" class="input">
+                            <option value="25">แสดง 25 รายการ</option>
+                            <option value="50" selected>แสดง 50 รายการ</option>
+                            <option value="100">แสดง 100 รายการ</option>
+                            <option value="all">แสดงทั้งหมด</option>
+                        </select>
+                        <button id="exportTableBtn" class="btn btn-secondary">ส่งออกตาราง CSV</button>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="table-wrapper">
+                    <table id="dataTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="date">วันที่ <span class="sort-icon">⇅</span></th>
+                                <th data-sort="% Iron Concentrate">% Iron Conc. <span class="sort-icon">⇅</span></th>
+                                <th data-sort="% Silica Concentrate">% Silica Conc. <span class="sort-icon">⇅</span>
+                                </th>
+                                <th data-sort="Ore Pulp pH">pH <span class="sort-icon">⇅</span></th>
+                                <th data-sort="Ore Pulp Density">Density <span class="sort-icon">⇅</span></th>
+                                <th data-sort="Starch Flow">Starch Flow <span class="sort-icon">⇅</span></th>
+                                <th data-sort="Amina Flow">Amina Flow <span class="sort-icon">⇅</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button id="prevPage" class="btn btn-secondary" disabled>← ก่อนหน้า</button>
+                    <span id="pageInfo">หน้า 1 จาก 1</span>
+                    <button id="nextPage" class="btn btn-secondary" disabled>ถัดไป →</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 Mining Process Analytics Dashboard | ข้อมูลจาก cleaned_dataset9.csv</p>
+            <p>สร้างด้วย Chart.js, Papa Parse และ Vanilla JavaScript</p>
+        </div>
+    </footer>
+
+    <script src="analytics-dashboard.js"></script>
+</body>
+
+</html>
